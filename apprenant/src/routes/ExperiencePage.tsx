@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { pb, pbFileUrl, type ArContentRecord, type ExperienceRecord, type TargetRecord } from '../lib/pb';
 import { loadProgress, markDiscovered, resetProgress, targetHues } from '../lib/progress';
 import { capturePolaroid, dropPolaroids, loadPolaroid, savePolaroid } from '../lib/polaroid';
-import { ArExperience, type TrackingState } from '../ar/ArExperience';
+import { ArExperience, type DebugSnapshot, type TrackingState } from '../ar/ArExperience';
 import { Button, IconButton, Spinner } from '../ui';
 
 type Phase = 'loading' | 'error' | 'landing' | 'starting' | 'ar';
@@ -16,6 +16,8 @@ interface LoadedData {
 
 export default function ExperiencePage() {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
+  const debugMode = searchParams.get('debug') === '1';
   const [phase, setPhase] = useState<Phase>('loading');
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<LoadedData | null>(null);
@@ -23,6 +25,7 @@ export default function ExperiencePage() {
   const [tracking, setTracking] = useState<{ state: TrackingState; label: string }>({ state: 'idle', label: 'Prêt' });
   const [unlockToast, setUnlockToast] = useState<{ id: string; name: string } | null>(null);
   const [embedModal, setEmbedModal] = useState<{ url: string; title?: string } | null>(null);
+  const [debugSnap, setDebugSnap] = useState<DebugSnapshot[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const arRef = useRef<ArExperience | null>(null);
@@ -114,6 +117,7 @@ export default function ExperiencePage() {
             setEmbedModal({ url: content.embedUrl, title: content.title });
           }
         },
+        onDebugSnapshot: debugMode ? (snap) => setDebugSnap(snap) : undefined,
       });
 
       arRef.current = ar;
@@ -189,7 +193,30 @@ export default function ExperiencePage() {
           onClose={() => setEmbedModal(null)}
         />
       )}
+      {debugMode && (phase === 'ar' || phase === 'starting') && (
+        <DebugOverlay snap={debugSnap} />
+      )}
       {/* phase 'complete' removed — quest doesn't auto-finish */}
+    </div>
+  );
+}
+
+function DebugOverlay({ snap }: { snap: DebugSnapshot[] }) {
+  return (
+    <div className="absolute top-20 left-2 right-2 z-50 pointer-events-none">
+      <div className="rounded-lg bg-black/85 border border-white/15 backdrop-blur-md p-2 font-mono text-[10px] leading-tight max-h-[40vh] overflow-y-auto pointer-events-auto">
+        <div className="text-zinc-400 mb-1 uppercase tracking-wider">debug · {snap.length} target{snap.length > 1 ? 's' : ''}</div>
+        {snap.map((s, i) => (
+          <div key={i} className={`flex items-center gap-1.5 ${s.tracked ? 'text-emerald-300' : 'text-zinc-500'}`}>
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.tracked ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
+            <span className="truncate flex-1">{i}·{s.targetName}</span>
+            <span>Δ{s.lastUpdatedFramesAgo}f</span>
+            <span>{s.attached ? '+' : '-'}</span>
+            <span>{s.matrixChanged ? 'M' : '·'}</span>
+            <span className="text-zinc-500">{s.pos.map(v => v.toFixed(1)).join(',')}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
