@@ -21,6 +21,7 @@ Thumbs.db
 *.local
 .idea/
 .vscode/
+.claude/
 *.swp
 
 # Logs
