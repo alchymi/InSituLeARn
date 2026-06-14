@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#09090B" />
+  <title>InSitu AR · Compiler une cible</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body class="compile-page">
+  <main class="compile-shell">
+    <header class="compile-header">
+      <a href="/" class="link-back">← Retour au scan</a>
+      <h1>Compiler une image cible</h1>
+      <p class="muted">
+        Glisse une image (PNG/JPG). Le fichier <code>.mind</code> est généré localement, dans ton navigateur — rien n'est envoyé sur un serveur.
+        Privilégie une image très détaillée, contrastée, sans larges aplats.
+      </p>
+    </header>
+
+    <label for="file" id="dropzone">
+      <input type="file" id="file" accept="image/*" hidden />
+      <div class="dz-icon">↑</div>
+      <p class="dz-title">Glisse une image ou clique</p>
+      <p class="dz-hint">PNG ou JPG · privilégie une image très détaillée (poster, photo riche en textures)</p>
+    </label>
+
+    <div id="preview" class="card" hidden>
+      <img id="preview-img" alt="" />
+      <div class="preview-meta">
+        <p id="preview-name"></p>
+        <p id="preview-dim" class="muted small"></p>
+      </div>
+    </div>
+
+    <div id="progress" class="card" hidden>
+      <p id="progress-label">Compilation MindAR…</p>
+      <div class="bar"><div id="progress-fill" class="bar-fill"></div></div>
+    </div>
+
+    <div id="result" class="card" hidden>
+      <p class="success">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Compilation terminée
+      </p>
+      <p class="muted">Taille du <code>.mind</code> : <span id="result-size"></span></p>
+      <div class="actions">
+        <a id="download" class="btn-primary" download="targets.mind">Télécharger</a>
+        <button id="use-now" class="btn-secondary" type="button">Utiliser maintenant</button>
+      </div>
+      <p class="muted small">
+        « Utiliser maintenant » garde le <code>.mind</code> en mémoire et te bascule directement sur la page de scan.
+        Pour la version persistante, place le fichier téléchargé dans <code>public/targets.mind</code>.
+      </p>
+    </div>
+  </main>
+
+  <script type="module" src="/src/compile.ts"></script>
+</body>
+</html>

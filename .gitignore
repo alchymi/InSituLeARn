@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.vite/
+
+# PocketBase runtime data (volume mount — never commit)
+server/pocketbase/pb_data/
+!server/pocketbase/pb_data/.gitkeep
+
+# Environment files (only commit .env.example)
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.local
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test artifacts
+coverage/
+playwright-report/

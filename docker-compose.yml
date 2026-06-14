@@ -1,0 +1,52 @@
+services:
+  # ──────────────────────────────────────────────────────────────
+  # PocketBase — always up (used in dev AND prod)
+  # In dev: pnpm dev for editor/apprenant + this service for the API
+  # ──────────────────────────────────────────────────────────────
+  pocketbase:
+    build:
+      context: ./server/pocketbase
+      args:
+        PB_VERSION: 0.22.21
+    container_name: insitu-pocketbase
+    restart: unless-stopped
+    ports:
+      - "${POCKETBASE_PORT:-8092}:8090"
+    volumes:
+      - ./server/pocketbase/pb_data:/pb/pb_data
+      - ./server/pocketbase/pb_migrations:/pb/pb_migrations
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8090/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────────────────────────
+  # Static frontends — only built/served in production profile.
+  # Activate with: docker compose --profile prod up -d --build
+  # ──────────────────────────────────────────────────────────────
+  editor:
+    profiles: [prod]
+    build:
+      context: ./editor
+    container_name: insitu-editor
+    restart: unless-stopped
+    ports:
+      - "${EDITOR_PORT:-8081}:8080"
+    environment:
+      POCKETBASE_URL: ${POCKETBASE_PUBLIC_URL:-http://localhost:8092}
+      PUBLIC_APP_URL: ${APPRENANT_PUBLIC_URL:-http://localhost:8082}
+      ADMIN_APP_URL: ${EDITOR_PUBLIC_URL:-http://localhost:8081}
+
+  apprenant:
+    profiles: [prod]
+    build:
+      context: ./apprenant
+    container_name: insitu-apprenant
+    restart: unless-stopped
+    ports:
+      - "${APPRENANT_PORT:-8082}:8080"
+    environment:
+      POCKETBASE_URL: ${POCKETBASE_PUBLIC_URL:-http://localhost:8092}
+      ADMIN_APP_URL: ${EDITOR_PUBLIC_URL:-http://localhost:8081}
+      PUBLIC_APP_URL: ${APPRENANT_PUBLIC_URL:-http://localhost:8082}

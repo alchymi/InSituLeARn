@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#09090B" />
+  <title>InSitu AR · Phase 0</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="container"></div>
+
+  <div id="ui">
+    <header id="ui-top" hidden>
+      <button id="back" class="icon-btn" aria-label="Retour" title="Retour">←</button>
+      <div id="tracking-badge" class="badge">
+        <span class="dot"></span>
+        <span id="tracking-label">Prêt</span>
+      </div>
+      <a href="/compile.html" class="icon-btn" aria-label="Compiler" title="Compiler une cible">⚙</a>
+    </header>
+
+    <div id="viewfinder" hidden>
+      <span class="vf vf-tl"></span>
+      <span class="vf vf-tr"></span>
+      <span class="vf vf-bl"></span>
+      <span class="vf vf-br"></span>
+    </div>
+
+    <p id="hint" hidden>Cadre l'image cible</p>
+    <div id="toast" hidden></div>
+
+    <section id="splash">
+      <h1>InSitu AR</h1>
+      <p class="subtitle">Phase 0 · validation tracking</p>
+      <p id="splash-hint">
+        Place ton image cible imprimée ou affichée sur un écran, démarre la caméra, puis cadre-la.
+      </p>
+      <button id="start" class="btn-primary">Démarrer la caméra</button>
+      <a href="/compile.html" class="link-secondary">Pas encore de cible compilée ? →</a>
+    </section>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

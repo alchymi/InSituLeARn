@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="fr" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>InSitu AR Learning — POC Mockups</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+          mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  html { background: #050507; }
+  body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  .heading-tight { letter-spacing: -0.02em; }
+  .heading-tighter { letter-spacing: -0.03em; }
+
+  /* page background ambient */
+  .page-ambient {
+    background:
+      radial-gradient(900px 600px at 12% -10%, rgba(59,130,246,0.10), transparent 60%),
+      radial-gradient(700px 500px at 110% 10%, rgba(168,85,247,0.06), transparent 60%),
+      #050507;
+  }
+
+  /* hero ambient inside landing */
+  .hero-ambient {
+    background:
+      radial-gradient(circle at 30% 0%, rgba(59,130,246,0.22), transparent 55%),
+      radial-gradient(circle at 90% 20%, rgba(16,185,129,0.10), transparent 50%),
+      #09090B;
+  }
+
+  /* camera background fake (workshop scene) */
+  .cam-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 40% 30%, rgba(255,200,140,0.18), transparent 50%),
+      radial-gradient(ellipse at 70% 80%, rgba(60,90,130,0.18), transparent 55%),
+      linear-gradient(180deg, #181410 0%, #0C0D10 50%, #060709 100%);
+    filter: saturate(0.85) brightness(0.85);
+  }
+  .cam-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 4px 4px;
+    mix-blend-mode: overlay;
+    opacity: 0.45;
+  }
+  .cam-vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+  }
+
+  /* Slot locked: deterministic conic gradient */
+  .slot-locked {
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.06), transparent 60%),
+      conic-gradient(from var(--hue) at 50% 50%,
+        hsl(var(--h1), 30%, 22%),
+        hsl(var(--h2), 32%, 18%),
+        hsl(var(--h3), 28%, 24%),
+        hsl(var(--h1), 30%, 22%));
+    position: relative;
+  }
+  .slot-locked::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(9,9,11,0) 40%, rgba(9,9,11,0.7) 100%);
+  }
+
+  /* Polaroid: vignette + grain */
+  .polaroid {
+    position: relative;
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,0.10),
+      0 1px 2px rgba(0,0,0,0.4),
+      0 8px 24px rgba(0,0,0,0.35);
+  }
+  .polaroid::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.45) 100%);
+    border-radius: inherit;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+
+  /* Viewfinder corners */
+  .vf-corner { position: absolute; width: 28px; height: 28px; border-color: rgba(255,255,255,0.85); }
+  .vf-tl { top: 0; left: 0; border-top: 2px solid; border-left: 2px solid; border-top-left-radius: 4px; }
+  .vf-tr { top: 0; right: 0; border-top: 2px solid; border-right: 2px solid; border-top-right-radius: 4px; }
+  .vf-bl { bottom: 0; left: 0; border-bottom: 2px solid; border-left: 2px solid; border-bottom-left-radius: 4px; }
+  .vf-br { bottom: 0; right: 0; border-bottom: 2px solid; border-right: 2px solid; border-bottom-right-radius: 4px; }
+
+  @keyframes pulse-soft { 0%, 100% { opacity: 0.6 } 50% { opacity: 1 } }
+  .pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+  @keyframes dot-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5) } 50% { box-shadow: 0 0 0 6px rgba(16,185,129,0) } }
+  .dot-live { animation: dot-pulse 1.6s ease-out infinite; }
+
+  /* CTA primary */
+  .btn-primary {
+    background: #3B82F6;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.12),
+      0 1px 2px rgba(0,0,0,0.3),
+      0 8px 24px rgba(59,130,246,0.18);
+  }
+  .btn-primary:hover { background: #2563EB; }
+
+  /* divider section */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 50%, transparent);
+  }
+
+  /* number tag */
+  .num-tag {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* scrollbar in mockup */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+</style>
+</head>
+
+<body class="page-ambient text-zinc-100 font-sans">
+
+<!-- ====== Page header ====== -->
+<header class="border-b border-white/[0.06] sticky top-0 z-50 backdrop-blur-xl bg-[#050507]/80">
+  <div class="max-w-[1400px] mx-auto px-8 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-7 h-7 rounded-[8px] bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+        <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="font-semibold text-sm">InSitu AR Learning</span>
+        <span class="text-zinc-500 text-sm">·</span>
+        <span class="text-zinc-400 text-sm">POC Mockups</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="num-tag rounded-full px-2.5 h-6 inline-flex items-center text-[11px] text-zinc-400 font-medium font-mono">v0.1</span>
+      <span class="num-tag rounded-full px-2.5 h-6 inline-flex items-center text-[11px] text-zinc-400 font-medium">Dark only</span>
+    </div>
+  </div>
+</header>
+
+<!-- ====== Intro ====== -->
+<section class="max-w-[1400px] mx-auto px-8 pt-16 pb-12">
+  <div class="max-w-2xl">
+    <span class="num-tag rounded-full px-3 h-7 inline-flex items-center text-[11px] font-medium text-zinc-300 uppercase tracking-wide">Mockups statiques · 8 écrans</span>
+    <h1 class="heading-tighter mt-6 text-5xl font-semibold">Une plateforme WebAR<br/>en situation réelle.</h1>
+    <p class="mt-5 text-zinc-400 leading-relaxed">
+      Un éditeur place des images cibles dans un lieu physique, attache du contenu pédagogique, et partage un lien.
+      L'apprenant scanne, débloque, collectionne. Chaque découverte devient un souvenir visuel personnel.
+    </p>
+    <div class="mt-6 flex items-center gap-3 text-[12px] text-zinc-500">
+      <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Three.js + MindAR</span>
+      <span>·</span>
+      <span>PocketBase 0.22.21</span>
+      <span>·</span>
+      <span>Self-hosted</span>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-[1400px] mx-auto"></div>
+
+<!-- ============================================================
+     SCREEN 01 — Landing apprenant
+============================================================ -->
+<section class="max-w-[1400px] mx-auto px-8 py-20">
+  <div class="grid grid-cols-12 gap-8">
+    <div class="col-span-12 lg:col-span-4">
+      <div class="sticky top-28">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="num-tag rounded-md w-7 h-7 inline-flex items-center justify-center text-[11px] font-mono text-zinc-400">01</span>
+          <span class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Apprenant · mobile</span>
+        </div>
+        <h2 class="heading-tight text-3xl font-semibold">Landing de quête</h2>
+        <p class="mt-3 text-zinc-400 text-[14px] leading-relaxed">
+          L'apprenant arrive sur le lien partagé. Compteur de progression, grille de slots à débloquer,
+          un seul CTA en bas. Les slots verrouillés montrent un motif déterministe — aucun spoiler.
+        </p>
+        <ul class="mt-6 space-y-3 text-[13px] text-zinc-400">
+          <li class="flex gap-2.5"><span class="text-blue-400 font-mono mt-0.5">→</span>Progression en localStorage par slug</li>
+          <li class="flex gap-2.5"><span class="text-blue-400 font-mono mt-0.5">→</span>Slots verrouillés : conic-gradient hashé sur l'ID target</li>
+          <li class="flex gap-2.5"><span class="text-blue-400 font-mono mt-0.5">→</span>Slots débloqués : polaroid capturé au moment de la découverte</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-span-12 lg:col-span-8 flex justify-center">
+      <!-- Phone frame -->
+      <div class="relative w-[390px] h-[844px] rounded-[48px] bg-black p-[10px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.06)]">
+        <div class="relative w-full h-full rounded-[40px] overflow-hidden hero-ambient">
+          <!-- notch -->
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-2xl z-50"></div>
+
+          <!-- status bar fake -->
+          <div class="absolute top-0 left-0 right-0 h-12 flex items-center justify-between px-7 z-40 text-[12px] text-white/80 font-medium">
+            <span>9:41</span>
+            <span class="flex items-center gap-1.5">
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><path fill="currentColor" d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+              <span>5G</span>
+              <svg viewBox="0 0 24 24" class="w-4 h-3"><rect x="1" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="8" width="14" height="8" fill="currentColor"/><rect x="20" y="10" width="2" height="4" fill="currentColor"/></svg>
+            </span>
+          </div>
+
+          <!-- Content -->
+          <div class="relative h-full pt-14 px-6 pb-32 overflow-hidden">
+            <!-- header micro -->
+            <div class="flex items-center justify-between">
+              <span class="num-tag rounded-full px-2.5 h-6 inline-flex items-center text-[10px] font-medium text-zinc-300 uppercase tracking-wider">Atelier · Site A</span>
+              <button class="w-9 h-9 rounded-full border border-white/10 bg-white/[0.04] flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+              </button>
+            </div>
+
+            <h1 class="heading-tighter mt-7 text-[34px] leading-[1.05] font-semibold">Parcours<br/>Sécurité<br/><span class="text-zinc-500">— Atelier 3</span></h1>
+
+            <!-- progress -->
+            <div class="mt-8">
+              <div class="flex items-baseline justify-between">
+                <div class="flex items-baseline gap-1">
+                  <span class="text-3xl font-semibold heading-tight">3</span>
+                  <span class="text-zinc-500 text-2xl font-medium">/ 7</span>
+                  <span class="ml-2 text-xs text-zinc-500">découverts</span>
+                </div>
+                <span class="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Quête active
+                </span>
+              </div>
+              <div class="mt-3 h-[3px] rounded-full bg-white/[0.06] overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-blue-500 to-emerald-500" style="width: 43%"></div>
+              </div>
+            </div>
+
+            <!-- Grid -->
+            <div class="mt-7 grid grid-cols-3 gap-3">
+              <!-- Unlocked 1 -->
+              <div class="aspect-square rounded-2xl overflow-hidden polaroid">
+                <div class="absolute inset-0" style="background: url('https://picsum.photos/seed/lathe/300/300') center/cover;"></div>
+                <div class="absolute inset-x-0 bottom-0 px-2 py-1.5 bg-gradient-to-t from-black/85 to-transparent">
+                  <div class="text-[10px] font-medium text-white truncate">Tour à métal</div>
+                </div>
+                <div class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-emerald-500/90 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-black" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+              <!-- Unlocked 2 -->
+              <div class="aspect-square rounded-2xl overflow-hidden polaroid">
+                <div class="absolute inset-0" style="background: url('https://picsum.photos/seed/welder/300/300') center/cover;"></div>
+                <div class="absolute inset-x-0 bottom-0 px-2 py-1.5 bg-gradient-to-t from-black/85 to-transparent">
+                  <div class="text-[10px] font-medium text-white truncate">Poste soudure</div>
+                </div>
+                <div class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-emerald-500/90 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-black" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+              <!-- Unlocked 3 -->
+              <div class="aspect-square rounded-2xl overflow-hidden polaroid">
+                <div class="absolute inset-0" style="background: url('https://picsum.photos/seed/bench/300/300') center/cover;"></div>
+                <div class="absolute inset-x-0 bottom-0 px-2 py-1.5 bg-gradient-to-t from-black/85 to-transparent">
+                  <div class="text-[10px] font-medium text-white truncate">Établi principal</div>
+                </div>
+                <div class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-emerald-500/90 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-black" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+              <!-- Locked 4 -->
+              <div class="aspect-square rounded-2xl slot-locked" style="--hue:120deg; --h1: 200; --h2: 220; --h3: 250;">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" class="w-5 h-5 text-white/15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+              </div>
+              <!-- Locked 5 -->
+              <div class="aspect-square rounded-2xl slot-locked" style="--hue:30deg; --h1: 280; --h2: 320; --h3: 350;">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" class="w-5 h-5 text-white/15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+              </div>
+              <!-- Locked 6 -->
+              <div class="aspect-square rounded-2xl slot-locked" style="--hue:200deg; --h1: 160; --h2: 180; --h3: 200;">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" class="w-5 h-5 text-white/15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+              </div>
+              <!-- Locked 7 -->
+              <div class="aspect-square rounded-2xl slot-locked col-span-1" style="--hue:90deg; --h1: 30; --h2: 50; --h3: 20;">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" class="w-5 h-5 text-white/15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <p class="mt-5 text-[12px] text-zinc-500 leading-relaxed">
+              Cherche les <span class="text-zinc-300">images cibles</span> dans l'atelier. Cadre-les pour déverrouiller leur contenu.
+            </p>
+          </div>
+
+          <!-- Bottom CTA -->
+          <div class="absolute bottom-0 left-0 right-0 p-6 pt-12 bg-gradient-to-t from-[#09090B] via-[#09090B]/95 to-transparent">
+            <button class="btn-primary w-full h-13 rounded-2xl py-4 text-white font-medium text-[15px] flex items-center justify-center gap-2.5">
+              <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
+              Scanner
+            </button>
+          </div>
+
+          <!-- home indicator -->
+          <div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-[1400px] mx-auto"></div>
+
+<!-- ============================================================
+     SCREEN 02 — Scan AR
+============================================================ -->
+<section class="max-w-[1400px] mx-auto px-8 py-20">
+  <div class="grid grid-cols-12 gap-8">
+    <div class="col-span-12 lg:col-span-4">
+      <div class="sticky top-28">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="num-tag rounded-md w-7 h-7 inline-flex items-center justify-center text-[11px] font-mono text-zinc-400">02</span>
+          <span class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Apprenant · scan</span>
+        </div>
+        <h2 class="heading-tight text-3xl font-semibold">Mode scan</h2>
+        <p class="mt-3 text-zinc-400 text-[14px] leading-relaxed">
+          Caméra plein écran, overlay minimal. Viseur en L au centre qui se contracte quand la target
+          est reconnue. Le badge tracking en haut indique l'état avec un dot animé.
+        </p>
+        <ul class="mt-6 space-y-3 text-[13px] text-zinc-400">
+          <li class="flex gap-2.5"><span class="text-blue-400 font-mono mt-0.5">→</span>Pas de menu, pas de chrome inutile</li>
+          <li class="flex gap-2.5"><span class="text-blue-400 font-mono mt-0.5">→</span>Hint scrollable masqué après 3s</li>
+          <li class="flex gap-2.5"><span class="text-blue-400 font-mono mt-0.5">→</span>Bouton aide → modal explicatif</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-span-12 lg:col-span-8 flex justify-center gap-6 flex-wrap">
+      <!-- Phone : scan idle -->
+      <div class="relative w-[330px] h-[715px] rounded-[44px] bg-black p-[8px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)]">
+        <div class="relative w-full h-full rounded-[36px] overflow-hidden">
+          <div class="cam-bg"></div>
+          <div class="cam-vignette"></div>
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-b-2xl z-50"></div>
+
+          <!-- Top overlay -->
+          <div class="absolute top-0 left-0 right-0 pt-12 px-5 z-30">
+            <div class="flex items-center justify-between">
+              <button class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <div class="px-3 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span class="text-[12px] font-medium text-white">3 / 7</span>
+              </div>
+              <button class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Viewfinder -->
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56">
+            <div class="relative w-full h-full pulse-soft">
+              <span class="vf-corner vf-tl"></span>
+              <span class="vf-corner vf-tr"></span>
+              <span class="vf-corner vf-bl"></span>
+              <span class="vf-corner vf-br"></span>
+            </div>
+          </div>
+
+          <!-- Bottom hint -->
+          <div class="absolute bottom-12 left-0 right-0 px-8 z-30">
+            <div class="text-center">
+              <p class="text-white/90 text-[15px] font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">Cadrez l'image cible</p>
+              <p class="mt-1 text-white/55 text-[12px] drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">à 30–80 cm de distance</p>
+            </div>
+          </div>
+
+          <div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-28 h-1 bg-white/40 rounded-full z-40"></div>
+        </div>
+      </div>
+
+      <!-- Phone : target found -->
+      <div class="relative w-[330px] h-[715px] rounded-[44px] bg-black p-[8px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)]">
+        <div class="relative w-full h-full rounded-[36px] overflow-hidden">
+          <div class="cam-bg" style="filter: saturate(1) brightness(1)"></div>
+          <div class="cam-vignette"></div>
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-b-2xl z-50"></div>
+
+          <!-- mock target detected with content -->
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-52 h-72" style="transform: translate(-50%, -50%) perspective(800px) rotateX(8deg) rotateY(-6deg)">
+            <div class="w-full h-full rounded-lg shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden ring-1 ring-emerald-500/40" style="background: url('https://picsum.photos/seed/poster/400/600') center/cover;"></div>
+            <!-- AR overlay attached -->
+            <div class="absolute -bottom-6 -right-4 w-44 rounded-2xl bg-zinc-950/85 backdrop-blur-md border border-white/10 p-4 shadow-2xl">
+              <div class="flex items-center gap-1.5 text-[10px] text-emerald-400 font-medium uppercase tracking-wider">
+                <span class="w-1 h-1 rounded-full bg-emerald-400"></span> Trouvé
+              </div>
+              <p class="mt-1 text-[13px] font-semibold leading-tight">Armoire électrique</p>
+              <p class="mt-1 text-[11px] text-zinc-400 leading-snug">3 procédures de sécurité associées</p>
+            </div>
+          </div>
+
+          <!-- Top overlay -->
+          <div class="absolute top-0 left-0 right-0 pt-12 px-5 z-30">
+            <div class="flex items-center justify-between">
+              <button class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <div class="px-3 h-9 rounded-full bg-black/40 backdrop-blur-md border border-emerald-500/30 flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dot-live"></span>
+                <span class="text-[12px] font-medium text-white">3 / 7</span>
+              </div>
+              <button class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-28 h-1 bg-white/40 rounded-full z-40"></div>
+        </div>
+        <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[11px] text-zinc-500 font-medium whitespace-nowrap">Target found · contenu ancré</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-[1400px] mx-auto"></div>
+
+<!-- ============================================================
+     SCREEN 03 — Découverte unlock
+============================================================ -->
+<section class="max-w-[1400px] mx-auto px-8 py-20">
+  <div class="grid grid-cols-12 gap-8">
+    <div class="col-span-12 lg:col-span-4">
+      <div class="sticky top-28">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="num-tag rounded-md w-7 h-7 inline-flex items-center justify-center text-[11px] font-mono text-zinc-400">03</span>
+          <span class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Apprenant · moment unlock</span>
+        </div>
+        <h2 class="heading-tight text-3xl font-semibold">Capture polaroid</h2>
+        <p class="mt-3 text-zinc-400 text-[14px] leading-relaxed">
+          À la première reconnaissance d'une target, on capture un frame de la caméra avec son contenu AR
+          superposé. Ce souvenir devient la vignette personnelle de l'apprenant — sa lumière, son angle.
+        </p>
+        <div class="mt-6 p-4 rounded-xl border border-blue-500/20 bg-blue-500/[0.06]">
+          <p class="text-[12px] text-blue-300 font-medium uppercase tracking-wider">Original</p>
+          <p class="mt-2 text-[13px] text-zinc-300 leading-relaxed">
+            Pas d'image cover à uploader pour l'éditeur. La vignette est créée par l'expérience elle-même.
+            Le verrouillage reste mystérieux, le déverrouillage devient un objet personnel.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-span-12 lg:col-span-8 flex justify-center">
+      <div class="relative w-[390px] h-[844px] rounded-[48px] bg-black p-[10px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.06)]">
+        <div class="relative w-full h-full rounded-[40px] overflow-hidden">
+          <div class="cam-bg" style="filter: saturate(1) brightness(0.6)"></div>
+          <div class="absolute inset-0 bg-black/40"></div>
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-2xl z-50"></div>
+
+          <!-- Polaroid being created, center -->
+          <div class="absolute inset-0 flex items-center justify-center px-10 z-30">
+            <div class="w-full">
+              <div class="text-center mb-6">
+                <div class="inline-flex items-center gap-2 px-3 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                  <svg viewBox="0 0 24 24" class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span class="text-[11px] font-medium text-emerald-400 uppercase tracking-wider">Nouveau découvert</span>
+                </div>
+              </div>
+
+              <!-- the polaroid -->
+              <div class="relative mx-auto w-[230px] aspect-[4/5] rounded-2xl p-3 bg-white/[0.04] border border-white/10 shadow-[0_30px_80px_-10px_rgba(0,0,0,0.7)]" style="transform: rotate(-3deg)">
+                <div class="w-full aspect-square rounded-xl overflow-hidden polaroid" style="background: url('https://picsum.photos/seed/electrical/400/400') center/cover;"></div>
+                <div class="mt-3 text-center">
+                  <p class="text-[13px] font-semibold heading-tight">Armoire électrique</p>
+                  <p class="text-[10px] text-zinc-500 mt-0.5 font-mono">14:32 · Atelier B</p>
+                </div>
+              </div>
+
+              <div class="mt-8 text-center">
+                <p class="text-[13px] text-zinc-400">4 / 7 découverts</p>
+                <div class="mt-3 mx-auto w-32 h-[3px] rounded-full bg-white/[0.08] overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-blue-500 to-emerald-500" style="width: 57%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom: continue cta -->
+          <div class="absolute bottom-0 left-0 right-0 p-6 pt-16 z-30 bg-gradient-to-t from-black via-black/80 to-transparent">
+            <button class="btn-primary w-full h-13 rounded-2xl py-4 text-white font-medium text-[15px] flex items-center justify-center gap-2">
+              Continuer le scan
+              <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+
+          <div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full z-40"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-[1400px] mx-auto"></div>
+
+<!-- ============================================================
+     SCREEN 04 — Carte de contenu AR
+============================================================ -->
+<section class="max-w-[1400px] mx-auto px-8 py-20">
+  <div class="grid grid-cols-12 gap-8">
+    <div class="col-span-12 lg:col-span-4">
+      <div class="sticky top-28">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="num-tag rounded-md w-7 h-7 inline-flex items-center justify-center text-[11px] font-mono text-zinc-400">04</span>
+          <span class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Apprenant · contenu</span>
+        </div>
+        <h2 class="heading-tight text-3xl font-semibold">Panneau de contenu</h2>
+        <p class="mt-3 text-zinc-400 text-[14px] leading-relaxed">
+          Carte sobre ancrée à la target. Lisible sur fond caméra grâce au backdrop-blur et au scrim.
+          Les boutons d'interaction (H5P, embed, model3d) ouvrent une modale plein écran.
+        </p>
+        <ul class="mt-6 space-y-3 text-[13px] text-zinc-400">
+          <li class="flex gap-2.5"><span class="text-blue-400 font-mono mt-0.5">→</span>Types : text, image, model3d, embed, h5p</li>
+          <li class="flex gap-2.5"><span class="text-blue-400 font-mono mt-0.5">→</span>Bouton fermer ramène en mode scan</li>
+          <li class="flex gap-2.5"><span class="text-blue-400 font-mono mt-0.5">→</span>Suivant = passe à la target suivante (en mode séquentiel V2)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-span-12 lg:col-span-8 flex justify-center">
+      <div class="relative w-[390px] h-[844px] rounded-[48px] bg-black p-[10px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.06)]">
+        <div class="relative w-full h-full rounded-[40px] overflow-hidden">
+          <div class="cam-bg"></div>
+          <div class="cam-vignette"></div>
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-2xl z-50"></div>
+
+          <!-- Target image faint in background -->
+          <div class="absolute top-[120px] left-1/2 -translate-x-1/2 w-44 h-60 rounded-lg overflow-hidden opacity-40" style="transform: translateX(-50%) perspective(800px) rotateX(5deg); background: url('https://picsum.photos/seed/poster2/400/600') center/cover;"></div>
+
+          <!-- Top bar -->
+          <div class="absolute top-0 left-0 right-0 pt-14 px-5 z-30">
+            <div class="flex items-center justify-between">
+              <button class="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <div class="px-3 h-9 rounded-full bg-black/50 backdrop-blur-md border border-emerald-500/30 flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dot-live"></span>
+                <span class="text-[12px] font-medium text-white">Stable</span>
+              </div>
+              <button class="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- AR content card anchored -->
+          <div class="absolute left-5 right-5 bottom-32 z-30">
+            <div class="rounded-3xl bg-zinc-950/85 backdrop-blur-xl border border-white/10 p-5 shadow-[0_30px_80px_-10px_rgba(0,0,0,0.7)]">
+              <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
+                <span class="num-tag rounded-md px-1.5 h-5 inline-flex items-center text-[10px]">04 / 07</span>
+                <span class="text-zinc-600">·</span>
+                <span>Armoire électrique</span>
+              </div>
+              <h3 class="mt-3 heading-tight text-xl font-semibold leading-tight">Procédure de consignation</h3>
+              <p class="mt-2 text-[13px] text-zinc-400 leading-relaxed">
+                Avant toute intervention, vérifier l'absence de tension avec un VAT calibré.
+                Mettre en place un cadenas personnel.
+              </p>
+
+              <!-- Embedded content tiles -->
+              <div class="mt-4 grid grid-cols-3 gap-2">
+                <button class="aspect-square rounded-xl bg-white/[0.04] border border-white/10 hover:border-white/20 flex flex-col items-center justify-center gap-1.5 transition-colors">
+                  <svg viewBox="0 0 24 24" class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                  <span class="text-[10px] text-zinc-400">Vidéo</span>
+                </button>
+                <button class="aspect-square rounded-xl bg-white/[0.04] border border-white/10 hover:border-white/20 flex flex-col items-center justify-center gap-1.5 transition-colors">
+                  <svg viewBox="0 0 24 24" class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                  <span class="text-[10px] text-zinc-400">Modèle 3D</span>
+                </button>
+                <button class="aspect-square rounded-xl bg-white/[0.04] border border-white/10 hover:border-white/20 flex flex-col items-center justify-center gap-1.5 transition-colors">
+                  <svg viewBox="0 0 24 24" class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  <span class="text-[10px] text-zinc-400">Quiz H5P</span>
+                </button>
+              </div>
+
+              <div class="mt-4 flex items-center gap-2">
+                <button class="flex-1 h-11 rounded-xl bg-white/[0.05] border border-white/10 text-[13px] font-medium hover:bg-white/[0.08]">Précédent</button>
+                <button class="flex-1 btn-primary h-11 rounded-xl text-white text-[13px] font-medium flex items-center justify-center gap-1.5">
+                  Suivant
+                  <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full z-40"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-[1400px] mx-auto"></div>
+
+<!-- ============================================================
+     SCREEN 05 — Quête complétée
+============================================================ -->
+<section class="max-w-[1400px] mx-auto px-8 py-20">
+  <div class="grid grid-cols-12 gap-8">
+    <div class="col-span-12 lg:col-span-4">
+      <div class="sticky top-28">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="num-tag rounded-md w-7 h-7 inline-flex items-center justify-center text-[11px] font-mono text-zinc-400">05</span>
+          <span class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Apprenant · complétion</span>
+        </div>
+        <h2 class="heading-tight text-3xl font-semibold">Fin de quête</h2>
+        <p class="mt-3 text-zinc-400 text-[14px] leading-relaxed">
+          Récap des polaroids collectés en bandeau horizontal. Pas de confettis tape-à-l'œil — un simple
+          glow doux et la collection complète comme trophée.
+        </p>
+      </div>
+    </div>
+
+    <div class="col-span-12 lg:col-span-8 flex justify-center">
+      <div class="relative w-[390px] h-[844px] rounded-[48px] bg-black p-[10px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.06)]">
+        <div class="relative w-full h-full rounded-[40px] overflow-hidden" style="background: radial-gradient(circle at 50% 25%, rgba(16,185,129,0.18), transparent 55%), radial-gradient(circle at 50% 90%, rgba(59,130,246,0.10), transparent 50%), #09090B;">
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-2xl z-50"></div>
+
+          <div class="relative h-full pt-20 px-6 pb-8 flex flex-col">
+            <!-- crown / sparkle -->
+            <div class="flex justify-center">
+              <div class="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12l3-9 5 5L15 3l4 5 3-1-4 14H6z"/></svg>
+              </div>
+            </div>
+
+            <h1 class="mt-6 text-center heading-tighter text-[42px] leading-[1] font-semibold">Quête<br/>complétée</h1>
+            <p class="mt-3 text-center text-zinc-400 text-[14px]">7 stations sur 7 découvertes en 22 min</p>
+
+            <!-- Stats row -->
+            <div class="mt-7 grid grid-cols-3 gap-2">
+              <div class="rounded-xl bg-white/[0.03] border border-white/[0.08] p-3 text-center">
+                <div class="text-2xl font-semibold heading-tight">7</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5 uppercase tracking-wider">Stations</div>
+              </div>
+              <div class="rounded-xl bg-white/[0.03] border border-white/[0.08] p-3 text-center">
+                <div class="text-2xl font-semibold heading-tight">12</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5 uppercase tracking-wider">Contenus</div>
+              </div>
+              <div class="rounded-xl bg-white/[0.03] border border-white/[0.08] p-3 text-center">
+                <div class="text-2xl font-semibold heading-tight">22<span class="text-base text-zinc-500">m</span></div>
+                <div class="text-[10px] text-zinc-500 mt-0.5 uppercase tracking-wider">Durée</div>
+              </div>
+            </div>
+
+            <!-- Polaroid collection scroll -->
+            <div class="mt-7">
+              <p class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium mb-3 px-1">Tes souvenirs</p>
+              <div class="flex gap-2.5 overflow-x-auto -mx-6 px-6 pb-2">
+                <div class="shrink-0 w-20 aspect-[4/5] rounded-xl p-1.5 bg-white/[0.04] border border-white/10" style="transform: rotate(-2deg);">
+                  <div class="w-full aspect-square rounded-md overflow-hidden polaroid" style="background: url('https://picsum.photos/seed/lathe/200/200') center/cover;"></div>
+                  <p class="text-[8px] text-zinc-400 truncate mt-1 text-center font-medium">Tour</p>
+                </div>
+                <div class="shrink-0 w-20 aspect-[4/5] rounded-xl p-1.5 bg-white/[0.04] border border-white/10" style="transform: rotate(1deg);">
+                  <div class="w-full aspect-square rounded-md overflow-hidden polaroid" style="background: url('https://picsum.photos/seed/welder/200/200') center/cover;"></div>
+                  <p class="text-[8px] text-zinc-400 truncate mt-1 text-center font-medium">Soudure</p>
+                </div>
+                <div class="shrink-0 w-20 aspect-[4/5] rounded-xl p-1.5 bg-white/[0.04] border border-white/10" style="transform: rotate(-1deg);">
+                  <div class="w-full aspect-square rounded-md overflow-hidden polaroid" style="background: url('https://picsum.photos/seed/bench/200/200') center/cover;"></div>
+                  <p class="text-[8px] text-zinc-400 truncate mt-1 text-center font-medium">Établi</p>
+                </div>
+                <div class="shrink-0 w-20 aspect-[4/5] rounded-xl p-1.5 bg-white/[0.04] border border-white/10" style="transform: rotate(2deg);">
+                  <div class="w-full aspect-square rounded-md overflow-hidden polaroid" style="background: url('https://picsum.photos/seed/electrical/200/200') center/cover;"></div>
+                  <p class="text-[8px] text-zinc-400 truncate mt-1 text-center font-medium">Armoire</p>
+                </div>
+                <div class="shrink-0 w-20 aspect-[4/5] rounded-xl p-1.5 bg-white/[0.04] border border-white/10" style="transform: rotate(-2deg);">
+                  <div class="w-full aspect-square rounded-md overflow-hidden polaroid" style="background: url('https://picsum.photos/seed/exit/200/200') center/cover;"></div>
+                  <p class="text-[8px] text-zinc-400 truncate mt-1 text-center font-medium">Sortie</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex-1"></div>
+
+            <!-- Actions -->
+            <div class="space-y-2.5">
+              <button class="btn-primary w-full h-12 rounded-2xl text-white font-medium text-[14px] flex items-center justify-center gap-2">
+                <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Partager mes souvenirs
+              </button>
+              <button class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 text-zinc-200 font-medium text-[14px] hover:bg-white/[0.08]">Rejouer la quête</button>
+            </div>
+          </div>
+
+          <div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full z-40"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-[1400px] mx-auto"></div>
+
+<!-- ============================================================
+     SCREEN 06 — Login éditeur
+============================================================ -->
+<section class="max-w-[1400px] mx-auto px-8 py-20">
+  <div class="grid grid-cols-12 gap-8 mb-10">
+    <div class="col-span-12 lg:col-span-12">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="num-tag rounded-md w-7 h-7 inline-flex items-center justify-center text-[11px] font-mono text-zinc-400">06</span>
+        <span class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Éditeur · auth</span>
+      </div>
+      <h2 class="heading-tight text-3xl font-semibold">Login / Register</h2>
+      <p class="mt-3 text-zinc-400 text-[14px] leading-relaxed max-w-2xl">
+        Self-register libre. Email + mot de passe. Pas de social login pour le POC.
+      </p>
+    </div>
+  </div>
+
+  <!-- Desktop frame -->
+  <div class="relative w-full rounded-2xl overflow-hidden border border-white/[0.08] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)] bg-[#09090B]">
+    <!-- Browser chrome -->
+    <div class="h-10 bg-[#0E0E11] border-b border-white/[0.06] flex items-center px-4 gap-2">
+      <div class="flex gap-1.5">
+        <div class="w-3 h-3 rounded-full bg-zinc-700"></div>
+        <div class="w-3 h-3 rounded-full bg-zinc-700"></div>
+        <div class="w-3 h-3 rounded-full bg-zinc-700"></div>
+      </div>
+      <div class="ml-3 mx-auto max-w-xl w-full">
+        <div class="h-6 px-3 bg-[#16161A] border border-white/[0.06] rounded-md text-[11px] text-zinc-500 flex items-center font-mono">
+          <svg viewBox="0 0 24 24" class="w-3 h-3 mr-2 text-zinc-600" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          admin.ar-learning.app/login
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="min-h-[600px] flex items-center justify-center p-12" style="background: radial-gradient(circle at 50% 0%, rgba(59,130,246,0.06), transparent 50%);">
+      <div class="w-full max-w-[400px]">
+        <div class="flex items-center gap-2.5 mb-10">
+          <div class="w-9 h-9 rounded-[10px] bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="font-semibold text-[15px]">InSitu AR</span>
+        </div>
+
+        <h1 class="heading-tighter text-[32px] font-semibold leading-tight">Connecte-toi pour créer une quête</h1>
+        <p class="mt-3 text-zinc-400 text-[14px]">Première fois ici ? <a class="text-blue-400 hover:text-blue-300 underline-offset-4 hover:underline">Crée un compte</a>.</p>
+
+        <form class="mt-8 space-y-4">
+          <div>
+            <label class="text-[12px] font-medium text-zinc-400 block mb-1.5">Email</label>
+            <input type="email" value="hello@example.com" class="w-full h-11 px-4 rounded-lg bg-[#0E0E11] border border-white/10 text-[14px] text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20">
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-[12px] font-medium text-zinc-400">Mot de passe</label>
+              <a class="text-[12px] text-zinc-500 hover:text-zinc-300">Oublié ?</a>
+            </div>
+            <input type="password" value="••••••••••••" class="w-full h-11 px-4 rounded-lg bg-[#0E0E11] border border-white/10 text-[14px] text-zinc-100 focus:outline-none focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20">
+          </div>
+          <button type="button" class="btn-primary w-full h-11 rounded-lg text-white font-medium text-[14px] mt-2">Se connecter</button>
+        </form>
+
+        <div class="mt-6 text-center text-[11px] text-zinc-500">
+          En continuant, tu acceptes les <a class="text-zinc-300">conditions d'utilisation</a>.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-[1400px] mx-auto"></div>
+
+<!-- ============================================================
+     SCREEN 07 — Dashboard éditeur
+============================================================ -->
+<section class="max-w-[1400px] mx-auto px-8 py-20">
+  <div class="grid grid-cols-12 gap-8 mb-10">
+    <div class="col-span-12">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="num-tag rounded-md w-7 h-7 inline-flex items-center justify-center text-[11px] font-mono text-zinc-400">07</span>
+        <span class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Éditeur · dashboard</span>
+      </div>
+      <h2 class="heading-tight text-3xl font-semibold">Mes quêtes</h2>
+      <p class="mt-3 text-zinc-400 text-[14px] leading-relaxed max-w-2xl">
+        Vue principale d'un éditeur. Statut, métriques, accès rapide à la création.
+      </p>
+    </div>
+  </div>
+
+  <div class="relative w-full rounded-2xl overflow-hidden border border-white/[0.08] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)] bg-[#09090B]">
+    <!-- Browser chrome -->
+    <div class="h-10 bg-[#0E0E11] border-b border-white/[0.06] flex items-center px-4 gap-2">
+      <div class="flex gap-1.5">
+        <div class="w-3 h-3 rounded-full bg-zinc-700"></div>
+        <div class="w-3 h-3 rounded-full bg-zinc-700"></div>
+        <div class="w-3 h-3 rounded-full bg-zinc-700"></div>
+      </div>
+      <div class="ml-3 mx-auto max-w-xl w-full">
+        <div class="h-6 px-3 bg-[#16161A] border border-white/[0.06] rounded-md text-[11px] text-zinc-500 flex items-center font-mono">admin.ar-learning.app/dashboard</div>
+      </div>
+    </div>
+
+    <!-- App shell -->
+    <div class="flex min-h-[640px]">
+      <!-- Sidebar -->
+      <aside class="w-56 shrink-0 border-r border-white/[0.06] p-4">
+        <div class="flex items-center gap-2 px-2 py-1.5 mb-6">
+          <div class="w-7 h-7 rounded-[8px] bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="font-semibold text-[13px]">InSitu</span>
+        </div>
+
+        <nav class="space-y-0.5">
+          <a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md bg-white/[0.06] text-[13px] text-zinc-100 font-medium">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            Mes quêtes
+          </a>
+          <a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+            Médias
+          </a>
+          <a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Paramètres
+          </a>
+        </nav>
+
+        <div class="absolute bottom-4 left-4 right-auto w-48">
+          <div class="rounded-lg p-2.5 hover:bg-white/[0.04] flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-[11px] font-semibold">JL</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-medium truncate">jimmy@example.com</p>
+              <p class="text-[10px] text-zinc-500">Plan POC</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="flex-1 p-8 overflow-hidden">
+        <div class="flex items-end justify-between">
+          <div>
+            <h1 class="heading-tighter text-[28px] font-semibold">Mes quêtes</h1>
+            <p class="text-zinc-400 text-[13px] mt-1">3 quêtes · 1 publiée · 2 brouillons</p>
+          </div>
+          <button class="btn-primary h-10 px-4 rounded-lg text-white text-[13px] font-medium flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            Nouvelle quête
+          </button>
+        </div>
+
+        <!-- Filter chips -->
+        <div class="mt-6 flex items-center gap-2">
+          <button class="h-7 px-3 rounded-full bg-white/[0.06] border border-white/10 text-[12px] font-medium text-zinc-100">Toutes <span class="ml-1.5 text-zinc-500">3</span></button>
+          <button class="h-7 px-3 rounded-full hover:bg-white/[0.04] text-[12px] font-medium text-zinc-400">Publiées <span class="ml-1.5 text-zinc-600">1</span></button>
+          <button class="h-7 px-3 rounded-full hover:bg-white/[0.04] text-[12px] font-medium text-zinc-400">Brouillons <span class="ml-1.5 text-zinc-600">2</span></button>
+          <div class="ml-auto flex items-center gap-2">
+            <div class="h-9 w-56 px-3 rounded-lg bg-[#0E0E11] border border-white/10 flex items-center gap-2 text-[12px] text-zinc-500">
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              Rechercher…
+            </div>
+          </div>
+        </div>
+
+        <!-- Quest cards grid -->
+        <div class="mt-5 grid grid-cols-3 gap-3">
+          <!-- Card 1 published -->
+          <div class="rounded-2xl bg-[#0E0E11] border border-white/[0.08] overflow-hidden hover:border-white/15 transition-colors cursor-pointer group">
+            <div class="aspect-[16/9] relative" style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%);">
+              <div class="absolute inset-0" style="background: url('https://picsum.photos/seed/quest1/600/340') center/cover; opacity: 0.6"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div class="absolute top-3 left-3 inline-flex items-center gap-1.5 h-6 px-2 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                <span class="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Publiée</span>
+              </div>
+              <div class="absolute bottom-3 left-3 right-3">
+                <p class="text-[11px] font-mono text-white/60">/e/atelier-securite-a</p>
+              </div>
+            </div>
+            <div class="p-4">
+              <h3 class="text-[15px] font-semibold heading-tight">Parcours Sécurité — Atelier 3</h3>
+              <p class="text-[12px] text-zinc-500 mt-1">Modifiée il y a 2h</p>
+              <div class="mt-3 flex items-center gap-4 text-[11px] text-zinc-400">
+                <span class="flex items-center gap-1.5"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>7 cibles</span>
+                <span class="flex items-center gap-1.5"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/></svg>12 contenus</span>
+                <span class="flex items-center gap-1.5"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>184</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2 draft -->
+          <div class="rounded-2xl bg-[#0E0E11] border border-white/[0.08] overflow-hidden hover:border-white/15 transition-colors cursor-pointer">
+            <div class="aspect-[16/9] relative" style="background: linear-gradient(135deg, #1e1b4b 0%, #0c0a1e 100%);">
+              <div class="absolute inset-0" style="background: url('https://picsum.photos/seed/quest2/600/340') center/cover; opacity: 0.5"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div class="absolute top-3 left-3 inline-flex items-center gap-1.5 h-6 px-2 rounded-full bg-amber-500/15 border border-amber-500/30">
+                <span class="w-1 h-1 rounded-full bg-amber-400"></span>
+                <span class="text-[10px] font-medium text-amber-400 uppercase tracking-wider">Brouillon</span>
+              </div>
+              <div class="absolute bottom-3 left-3 right-3">
+                <p class="text-[11px] font-mono text-white/60">/e/musee-collection-a</p>
+              </div>
+            </div>
+            <div class="p-4">
+              <h3 class="text-[15px] font-semibold heading-tight">Musée — Collection contemporaine</h3>
+              <p class="text-[12px] text-zinc-500 mt-1">Modifiée hier</p>
+              <div class="mt-3 flex items-center gap-4 text-[11px] text-zinc-400">
+                <span class="flex items-center gap-1.5"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>4 cibles</span>
+                <span class="flex items-center gap-1.5"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>6 contenus</span>
+                <span class="text-zinc-600">— non publié</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 draft empty -->
+          <div class="rounded-2xl bg-[#0E0E11] border border-white/[0.08] overflow-hidden hover:border-white/15 transition-colors cursor-pointer">
+            <div class="aspect-[16/9] relative bg-gradient-to-br from-zinc-900 to-zinc-950">
+              <div class="absolute inset-0 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-10 h-10 text-zinc-700" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+              </div>
+              <div class="absolute top-3 left-3 inline-flex items-center gap-1.5 h-6 px-2 rounded-full bg-amber-500/15 border border-amber-500/30">
+                <span class="w-1 h-1 rounded-full bg-amber-400"></span>
+                <span class="text-[10px] font-medium text-amber-400 uppercase tracking-wider">Brouillon</span>
+              </div>
+            </div>
+            <div class="p-4">
+              <h3 class="text-[15px] font-semibold heading-tight">Nouvelle quête</h3>
+              <p class="text-[12px] text-zinc-500 mt-1">Modifiée il y a 5 jours · vide</p>
+              <div class="mt-3 flex items-center gap-4 text-[11px] text-zinc-500">
+                <span>0 cibles</span>
+                <span>·</span>
+                <span>0 contenus</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-[1400px] mx-auto"></div>
+
+<!-- ============================================================
+     SCREEN 08 — Éditeur de quête + visual editor
+============================================================ -->
+<section class="max-w-[1400px] mx-auto px-8 py-20">
+  <div class="grid grid-cols-12 gap-8 mb-10">
+    <div class="col-span-12">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="num-tag rounded-md w-7 h-7 inline-flex items-center justify-center text-[11px] font-mono text-zinc-400">08</span>
+        <span class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Éditeur · quête</span>
+      </div>
+      <h2 class="heading-tight text-3xl font-semibold">Éditeur de quête (vue visuelle)</h2>
+      <p class="mt-3 text-zinc-400 text-[14px] leading-relaxed max-w-2xl">
+        Trois colonnes : liste des cibles à gauche, canvas Three.js au centre (image cible + contenus 3D
+        manipulables par TransformControls), propriétés du contenu sélectionné à droite. Upload d'une
+        nouvelle target → compilation .mind <em>dans le navigateur</em>, sans aller-retour serveur.
+      </p>
+    </div>
+  </div>
+
+  <div class="relative w-full rounded-2xl overflow-hidden border border-white/[0.08] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)] bg-[#09090B]">
+    <!-- Browser chrome -->
+    <div class="h-10 bg-[#0E0E11] border-b border-white/[0.06] flex items-center px-4 gap-2">
+      <div class="flex gap-1.5">
+        <div class="w-3 h-3 rounded-full bg-zinc-700"></div>
+        <div class="w-3 h-3 rounded-full bg-zinc-700"></div>
+        <div class="w-3 h-3 rounded-full bg-zinc-700"></div>
+      </div>
+      <div class="ml-3 mx-auto max-w-xl w-full">
+        <div class="h-6 px-3 bg-[#16161A] border border-white/[0.06] rounded-md text-[11px] text-zinc-500 flex items-center font-mono">admin.ar-learning.app/experiences/atelier-securite-a</div>
+      </div>
+    </div>
+
+    <!-- App shell with sub-header -->
+    <div class="flex border-b border-white/[0.06] px-4 h-12 items-center gap-4">
+      <a class="text-[12px] text-zinc-500 hover:text-zinc-300 flex items-center gap-1.5">
+        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        Mes quêtes
+      </a>
+      <div class="h-4 w-px bg-white/10"></div>
+      <h1 class="text-[14px] font-semibold heading-tight">Parcours Sécurité — Atelier 3</h1>
+      <div class="inline-flex items-center gap-1.5 h-5 px-2 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+        <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+        <span class="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Publiée</span>
+      </div>
+
+      <div class="ml-auto flex items-center gap-2">
+        <!-- Tabs -->
+        <div class="bg-white/[0.04] border border-white/[0.08] rounded-lg p-0.5 flex gap-0.5">
+          <button class="h-7 px-3 rounded-md bg-white/[0.06] text-[12px] font-medium text-zinc-100">Visuel</button>
+          <button class="h-7 px-3 rounded-md text-[12px] text-zinc-400">Liste</button>
+        </div>
+        <button class="h-9 px-3 rounded-lg bg-white/[0.04] border border-white/10 text-[12px] font-medium text-zinc-200 hover:bg-white/[0.08] flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Aperçu
+        </button>
+        <button class="h-9 px-3 rounded-lg bg-white/[0.04] border border-white/10 text-[12px] font-medium text-zinc-200 hover:bg-white/[0.08] flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+          QR Code
+        </button>
+        <button class="btn-primary h-9 px-4 rounded-lg text-white text-[12px] font-medium">Publier les changements</button>
+      </div>
+    </div>
+
+    <!-- Triple column -->
+    <div class="flex" style="height: 660px;">
+      <!-- Left: targets list -->
+      <aside class="w-64 shrink-0 border-r border-white/[0.06] p-3 overflow-auto">
+        <div class="flex items-center justify-between px-2 mb-2">
+          <span class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Cibles · 7</span>
+          <button class="w-6 h-6 rounded-md hover:bg-white/[0.06] flex items-center justify-center text-zinc-400">
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          </button>
+        </div>
+
+        <div class="space-y-0.5">
+          <!-- Target item active -->
+          <button class="w-full text-left rounded-lg p-2 bg-blue-500/[0.08] border border-blue-500/30 flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-md shrink-0 overflow-hidden" style="background: url('https://picsum.photos/seed/electrical/100/100') center/cover;"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-medium truncate">Armoire électrique</p>
+              <p class="text-[10px] text-zinc-400">3 contenus · 4ᵉ</p>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          </button>
+
+          <button class="w-full text-left rounded-lg p-2 hover:bg-white/[0.04] flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-md shrink-0 overflow-hidden" style="background: url('https://picsum.photos/seed/lathe/100/100') center/cover;"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-medium truncate">Tour à métal</p>
+              <p class="text-[10px] text-zinc-500">2 contenus · 1ʳᵉ</p>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          </button>
+          <button class="w-full text-left rounded-lg p-2 hover:bg-white/[0.04] flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-md shrink-0 overflow-hidden" style="background: url('https://picsum.photos/seed/welder/100/100') center/cover;"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-medium truncate">Poste soudure</p>
+              <p class="text-[10px] text-zinc-500">2 contenus · 2ᵉ</p>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          </button>
+          <button class="w-full text-left rounded-lg p-2 hover:bg-white/[0.04] flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-md shrink-0 overflow-hidden" style="background: url('https://picsum.photos/seed/bench/100/100') center/cover;"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-medium truncate">Établi principal</p>
+              <p class="text-[10px] text-zinc-500">1 contenu · 3ᵉ</p>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          </button>
+          <button class="w-full text-left rounded-lg p-2 hover:bg-white/[0.04] flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-md shrink-0 overflow-hidden" style="background: url('https://picsum.photos/seed/exit/100/100') center/cover;"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-medium truncate">Sortie de secours</p>
+              <p class="text-[10px] text-zinc-500">1 contenu · 5ᵉ</p>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+          </button>
+          <button class="w-full text-left rounded-lg p-2 hover:bg-white/[0.04] flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-md shrink-0 overflow-hidden" style="background: url('https://picsum.photos/seed/tools/100/100') center/cover;"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-medium truncate">Stockage outils</p>
+              <p class="text-[10px] text-zinc-500">2 contenus · 6ᵉ</p>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          </button>
+          <button class="w-full text-left rounded-lg p-2 hover:bg-white/[0.04] flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-md shrink-0 overflow-hidden" style="background: url('https://picsum.photos/seed/break/100/100') center/cover;"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-medium truncate">Zone de pause</p>
+              <p class="text-[10px] text-zinc-500">1 contenu · 7ᵉ</p>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          </button>
+
+          <!-- Add target with upload affordance -->
+          <button class="w-full mt-3 rounded-lg border border-dashed border-white/15 p-3 hover:bg-white/[0.03] hover:border-white/25 transition-colors text-center group">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 mx-auto text-zinc-500 group-hover:text-zinc-300" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p class="text-[12px] text-zinc-400 mt-1.5 font-medium">Ajouter une cible</p>
+            <p class="text-[10px] text-zinc-500">Compilation .mind locale</p>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Center: Three.js canvas -->
+      <main class="flex-1 relative overflow-hidden" style="background: radial-gradient(circle at 50% 30%, rgba(59,130,246,0.08), transparent 55%), #08080A;">
+        <!-- Grid floor -->
+        <div class="absolute inset-0" style="background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 32px 32px; mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);"></div>
+
+        <!-- Toolbar floating -->
+        <div class="absolute top-4 left-4 flex items-center gap-1 bg-[#0E0E11]/85 backdrop-blur-md border border-white/10 rounded-lg p-1 shadow-lg">
+          <button class="w-8 h-8 rounded-md bg-white/[0.06] flex items-center justify-center" title="Translate">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-zinc-100" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+          </button>
+          <button class="w-8 h-8 rounded-md hover:bg-white/[0.06] flex items-center justify-center" title="Rotate">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
+          <button class="w-8 h-8 rounded-md hover:bg-white/[0.06] flex items-center justify-center" title="Scale">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
+          </button>
+          <div class="w-px h-5 bg-white/10 mx-0.5"></div>
+          <button class="w-8 h-8 rounded-md hover:bg-white/[0.06] flex items-center justify-center" title="Reset view">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 10 9 10"/></svg>
+          </button>
+        </div>
+
+        <div class="absolute top-4 right-4 flex items-center gap-1 bg-[#0E0E11]/85 backdrop-blur-md border border-white/10 rounded-lg p-1 shadow-lg">
+          <button class="h-8 px-2.5 rounded-md hover:bg-white/[0.06] text-[11px] font-medium text-zinc-300 flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Aligner sur cible
+          </button>
+        </div>
+
+        <!-- Target image plane + 3 AR contents -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="transform: translate(-50%, -50%) perspective(900px) rotateX(50deg) rotateZ(0deg);">
+          <!-- target plane -->
+          <div class="relative w-[280px] h-[400px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)]" style="background: url('https://picsum.photos/seed/electrical/600/800') center/cover;">
+            <!-- ring -->
+            <div class="absolute inset-0 ring-1 ring-blue-400/40"></div>
+          </div>
+
+          <!-- AR content 1 (selected) -->
+          <div class="absolute -top-10 left-8 w-44 h-24 rounded-xl bg-zinc-900/90 backdrop-blur border-2 border-blue-400 shadow-2xl p-3">
+            <p class="text-[10px] uppercase tracking-wider text-blue-400 font-medium">Texte</p>
+            <p class="mt-0.5 text-[12px] font-semibold leading-tight">Procédure consignation</p>
+            <p class="mt-1 text-[10px] text-zinc-400 line-clamp-2">Avant intervention, vérifier l'absence de tension…</p>
+            <!-- gizmo handles -->
+            <div class="absolute -top-1 -left-1 w-2 h-2 bg-blue-400 ring-2 ring-blue-400/30 rounded-sm"></div>
+            <div class="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 ring-2 ring-blue-400/30 rounded-sm"></div>
+            <div class="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-400 ring-2 ring-blue-400/30 rounded-sm"></div>
+            <div class="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-400 ring-2 ring-blue-400/30 rounded-sm"></div>
+          </div>
+
+          <!-- AR content 2 -->
+          <div class="absolute -bottom-12 -right-12 w-28 h-28 rounded-xl bg-zinc-900/85 backdrop-blur border border-white/10 shadow-2xl flex items-center justify-center">
+            <svg viewBox="0 0 24 24" class="w-10 h-10 text-emerald-400/70" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+
+          <!-- AR content 3 (H5P button) -->
+          <div class="absolute -bottom-4 -left-16 w-20 h-20 rounded-full bg-violet-500/15 backdrop-blur border border-violet-500/40 shadow-2xl flex items-center justify-center">
+            <svg viewBox="0 0 24 24" class="w-8 h-8 text-violet-400" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+        </div>
+
+        <!-- Status bar -->
+        <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-[11px] text-zinc-500">
+          <div class="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-[#0E0E11]/85 backdrop-blur-md border border-white/10">
+            <span class="font-mono">cam · 32mm</span>
+            <span class="text-zinc-700">·</span>
+            <span class="font-mono">grid 4cm</span>
+            <span class="text-zinc-700">·</span>
+            <span class="font-mono">3 objets</span>
+          </div>
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0E0E11]/85 backdrop-blur-md border border-white/10">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>Sauvegardé · auto</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right: properties panel -->
+      <aside class="w-72 shrink-0 border-l border-white/[0.06] overflow-auto">
+        <div class="p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Contenu sélectionné</span>
+            <button class="w-6 h-6 rounded-md hover:bg-white/[0.06] flex items-center justify-center text-zinc-500">
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+
+          <div class="mt-3 p-3 rounded-lg bg-blue-500/[0.06] border border-blue-500/20">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-md bg-blue-500/15 border border-blue-500/30 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+              </div>
+              <div>
+                <p class="text-[12px] font-medium">Texte</p>
+                <p class="text-[10px] text-zinc-500 font-mono">content_4a7e</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fields -->
+          <div class="mt-5 space-y-4">
+            <div>
+              <label class="text-[11px] font-medium text-zinc-400 block mb-1.5">Titre</label>
+              <input value="Procédure consignation" class="w-full h-9 px-3 rounded-md bg-[#0E0E11] border border-white/10 text-[12px] focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30">
+            </div>
+            <div>
+              <label class="text-[11px] font-medium text-zinc-400 block mb-1.5">Corps</label>
+              <textarea rows="3" class="w-full px-3 py-2 rounded-md bg-[#0E0E11] border border-white/10 text-[12px] resize-none focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30">Avant toute intervention, vérifier l'absence de tension avec un VAT calibré.</textarea>
+            </div>
+
+            <div>
+              <span class="text-[11px] font-medium text-zinc-400 block mb-1.5">Position</span>
+              <div class="grid grid-cols-3 gap-1.5">
+                <div class="relative">
+                  <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600 font-mono">X</span>
+                  <input value="0.12" class="w-full h-8 pl-5 pr-2 rounded-md bg-[#0E0E11] border border-white/10 text-[11px] font-mono focus:outline-none focus:border-blue-500/60">
+                </div>
+                <div class="relative">
+                  <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600 font-mono">Y</span>
+                  <input value="0.34" class="w-full h-8 pl-5 pr-2 rounded-md bg-[#0E0E11] border border-white/10 text-[11px] font-mono focus:outline-none focus:border-blue-500/60">
+                </div>
+                <div class="relative">
+                  <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600 font-mono">Z</span>
+                  <input value="0.05" class="w-full h-8 pl-5 pr-2 rounded-md bg-[#0E0E11] border border-white/10 text-[11px] font-mono focus:outline-none focus:border-blue-500/60">
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <span class="text-[11px] font-medium text-zinc-400 block mb-1.5">Rotation</span>
+              <div class="grid grid-cols-3 gap-1.5">
+                <div class="relative"><span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600 font-mono">X</span><input value="0" class="w-full h-8 pl-5 pr-2 rounded-md bg-[#0E0E11] border border-white/10 text-[11px] font-mono"></div>
+                <div class="relative"><span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600 font-mono">Y</span><input value="0" class="w-full h-8 pl-5 pr-2 rounded-md bg-[#0E0E11] border border-white/10 text-[11px] font-mono"></div>
+                <div class="relative"><span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600 font-mono">Z</span><input value="-5" class="w-full h-8 pl-5 pr-2 rounded-md bg-[#0E0E11] border border-white/10 text-[11px] font-mono"></div>
+              </div>
+            </div>
+
+            <div>
+              <span class="text-[11px] font-medium text-zinc-400 block mb-1.5">Échelle</span>
+              <input type="range" min="0.5" max="2" step="0.05" value="1.1" class="w-full accent-blue-500">
+              <div class="flex justify-between text-[10px] text-zinc-600 font-mono mt-1"><span>0.5×</span><span class="text-zinc-300">1.10×</span><span>2.0×</span></div>
+            </div>
+
+            <div class="pt-3 border-t border-white/[0.06]">
+              <label class="text-[11px] font-medium text-zinc-400 block mb-1.5">Action au tap</label>
+              <div class="relative">
+                <select class="w-full h-9 px-3 rounded-md bg-[#0E0E11] border border-white/10 text-[12px] appearance-none focus:outline-none focus:border-blue-500/60">
+                  <option>Aucune</option>
+                  <option>Ouvrir modale H5P</option>
+                  <option>Ouvrir URL</option>
+                  <option>Étape suivante</option>
+                </select>
+                <svg viewBox="0 0 24 24" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ====== Footer ====== -->
+<footer class="mt-20 border-t border-white/[0.06]">
+  <div class="max-w-[1400px] mx-auto px-8 py-12">
+    <div class="flex items-center justify-between flex-wrap gap-6">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-[8px] bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+          <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div>
+          <p class="text-[13px] font-medium">InSitu AR Learning</p>
+          <p class="text-[11px] text-zinc-500">POC v0.1 · Mockups statiques pour validation visuelle</p>
+        </div>
+      </div>
+      <div class="text-[11px] text-zinc-500 font-mono">
+        Three.js · MindAR · PocketBase 0.22.21 · React · Vite · Tailwind
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

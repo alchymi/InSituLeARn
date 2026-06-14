@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.005em;
+  }
+  * { -webkit-tap-highlight-color: transparent; }
+}
+
+@layer utilities {
+  .heading-tight { letter-spacing: -0.02em; }
+  .heading-tighter { letter-spacing: -0.03em; }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.10) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.10);
+    border-radius: 8px;
+  }
+}
+
+/* Quill dark theme overrides */
+.ql-toolbar.ql-snow {
+  border-color: rgba(255,255,255,0.10) !important;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  background: #0E0E11;
+  padding: 8px;
+}
+.ql-container.ql-snow {
+  border-color: rgba(255,255,255,0.10) !important;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  background: #0E0E11;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  min-height: 120px;
+}
+.ql-editor {
+  color: #fafafa;
+  padding: 14px 16px;
+  min-height: 120px;
+}
+.ql-editor.ql-blank::before {
+  color: #71717A;
+  font-style: normal;
+}
+.ql-editor h2 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 6px 0 10px;
+}
+.ql-editor h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 6px 0 8px;
+}
+.ql-editor p { margin: 0 0 6px; }
+.ql-editor ul, .ql-editor ol { padding-left: 1.2em; }
+.ql-editor a { color: #60a5fa; text-decoration: underline; }
+.ql-snow .ql-stroke { stroke: #a1a1aa !important; }
+.ql-snow .ql-fill { fill: #a1a1aa !important; }
+.ql-snow .ql-picker { color: #a1a1aa !important; }
+.ql-snow .ql-picker-options {
+  background: #18181B !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  color: #fafafa !important;
+}
+.ql-snow .ql-active .ql-stroke { stroke: #60a5fa !important; }
+.ql-snow .ql-active .ql-fill { fill: #60a5fa !important; }
+.ql-snow .ql-tooltip {
+  background: #18181B;
+  border-color: rgba(255,255,255,0.10);
+  color: #fafafa;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.ql-snow .ql-tooltip input[type='text'] {
+  background: #0E0E11;
+  border: 1px solid rgba(255,255,255,0.10);
+  color: #fafafa;
+}
+
+/* ─── Info card (offscreen template used by html2canvas) ─────────────── */
+.ar-info-card {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #fafafa;
+  width: 540px;
+  letter-spacing: -0.005em;
+}
+.ar-info-card-inner {
+  background: #0F0F12;
+  border: 1.5px solid rgba(255,255,255,0.10);
+  border-radius: 24px;
+  padding: 28px 32px;
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.18);
+}
+.ar-info-card-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 16px;
+  color: #fafafa;
+}
+.ar-info-card-body {
+  font-size: 16px;
+  line-height: 1.55;
+  color: #d4d4d8;
+}
+.ar-info-card-body h2 {
+  font-size: 21px; font-weight: 600; color: #fafafa;
+  letter-spacing: -0.015em; margin: 16px 0 8px;
+}
+.ar-info-card-body h3 {
+  font-size: 17px; font-weight: 600; color: #fafafa; margin: 14px 0 6px;
+}
+.ar-info-card-body p { margin: 0 0 10px; }
+.ar-info-card-body strong { color: #fafafa; font-weight: 600; }
+.ar-info-card-body em { color: #fafafa; }
+.ar-info-card-body ul, .ar-info-card-body ol { padding-left: 22px; margin: 6px 0 12px; }
+.ar-info-card-body li { margin: 4px 0; }
+.ar-info-card-body a { color: #60a5fa; text-decoration: underline; text-underline-offset: 2px; }
+.ar-info-card-placeholder { color: #71717A; font-style: italic; }

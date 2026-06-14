@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.005em;
+    overscroll-behavior: none;
+  }
+  * { -webkit-tap-highlight-color: transparent; }
+}
+
+@layer utilities {
+  .heading-tight { letter-spacing: -0.02em; }
+  .heading-tighter { letter-spacing: -0.03em; }
+
+  /* Slot locked: deterministic conic-gradient via CSS vars (--h1..--h3 set inline) */
+  .slot-locked {
+    position: relative;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.06), transparent 60%),
+      conic-gradient(from var(--rot, 0deg) at 50% 50%,
+        hsl(var(--h1, 200), 30%, 22%),
+        hsl(var(--h2, 220), 32%, 18%),
+        hsl(var(--h3, 250), 28%, 24%),
+        hsl(var(--h1, 200), 30%, 22%));
+  }
+  .slot-locked::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(9,9,11,0) 40%, rgba(9,9,11,0.7) 100%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .vf { position: absolute; width: 28px; height: 28px; border-color: rgba(255,255,255,0.85); }
+  .vf-tl { top: 0; left: 0; border-top: 2px solid; border-left: 2px solid; border-top-left-radius: 4px; }
+  .vf-tr { top: 0; right: 0; border-top: 2px solid; border-right: 2px solid; border-top-right-radius: 4px; }
+  .vf-bl { bottom: 0; left: 0; border-bottom: 2px solid; border-left: 2px solid; border-bottom-left-radius: 4px; }
+  .vf-br { bottom: 0; right: 0; border-bottom: 2px solid; border-right: 2px solid; border-bottom-right-radius: 4px; }
+}
+
+/* Make sure MindAR's camera + canvas span fullscreen */
+.ar-container,
+.ar-container > div,
+.ar-container video,
+.ar-container canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* ─── Info card (offscreen template used by html2canvas) ─────────────── */
+.ar-info-card {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #fafafa;
+  width: 540px;
+  letter-spacing: -0.005em;
+}
+.ar-info-card-inner {
+  background: #0F0F12;
+  border: 1.5px solid rgba(255,255,255,0.10);
+  border-radius: 24px;
+  padding: 28px 32px;
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.18);
+}
+.ar-info-card-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 16px;
+  color: #fafafa;
+}
+.ar-info-card-body {
+  font-size: 16px;
+  line-height: 1.55;
+  color: #d4d4d8;
+}
+.ar-info-card-body h2 {
+  font-size: 21px;
+  font-weight: 600;
+  color: #fafafa;
+  letter-spacing: -0.015em;
+  margin: 16px 0 8px;
+}
+.ar-info-card-body h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 14px 0 6px;
+}
+.ar-info-card-body p { margin: 0 0 10px; }
+.ar-info-card-body strong { color: #fafafa; font-weight: 600; }
+.ar-info-card-body em { color: #fafafa; }
+.ar-info-card-body ul, .ar-info-card-body ol {
+  padding-left: 22px;
+  margin: 6px 0 12px;
+}
+.ar-info-card-body li { margin: 4px 0; }
+.ar-info-card-body a {
+  color: #60a5fa;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ar-info-card-placeholder {
+  color: #71717A;
+  font-style: italic;
+}
