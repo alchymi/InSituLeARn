@@ -100,6 +100,10 @@ export class ArExperience {
 
       const idx = i;
       anchor.onTargetFound = () => {
+        // Hard reset every OTHER anchor before this one shows up. Defensive
+        // against MindAR "stuck matrix" / stuck-rendering of previously found targets.
+        this.hardResetOtherAnchors(idx);
+
         this.lastUpdated[idx] = this.currentFrame;
         const wasFirst = !this.discovered.has(target.id);
         this.discovered.add(target.id);
@@ -189,6 +193,31 @@ export class ArExperience {
     if (this.onTapHandler) {
       this.mindar.renderer.domElement.removeEventListener('pointerdown', this.onTapHandler);
       this.onTapHandler = null;
+    }
+  }
+
+  /**
+   * Forcefully clean up every anchor other than `keepIdx`. Removes all children
+   * (including any leftover not in our cache), resets local transforms, hides
+   * the group, and forces our polling state to "lost". Done synchronously inside
+   * the `onTargetFound` callback so the very next render frame sees a clean state.
+   */
+  private hardResetOtherAnchors(keepIdx: number) {
+    for (let j = 0; j < this.anchors.length; j++) {
+      if (j === keepIdx) continue;
+      const g = this.anchors[j].group;
+      // Detach everything (defensive: anything in the group that we might have missed)
+      while (g.children.length > 0) g.remove(g.children[g.children.length - 1]);
+      g.matrix.identity();
+      g.matrixWorld.identity();
+      g.position.set(0, 0, 0);
+      g.rotation.set(0, 0, 0);
+      g.scale.set(1, 1, 1);
+      g.visible = false;
+      this.attachedFlag[j] = false;
+      this.lastUpdated[j] = -Infinity;
+      // Reset matrix snapshot so the next matrix-diff check doesn't fire stale-true
+      this.prevMatrix[j].fill(0);
     }
   }
 
