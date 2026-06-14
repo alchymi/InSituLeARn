@@ -118,6 +118,35 @@ curl -s http://localhost:${APPRENANT_PORT:-8082}/env.js | head -10   # doit cont
 
 Le tunnel est géré au niveau OS (pas dans ce repo, c'est volontaire). Hypothèse : `cloudflared` est déjà installé et un tunnel existe.
 
+**⚠️ Deux modèles de tunnel — identifier lequel AVANT d'éditer quoi que ce soit :**
+
+```bash
+# Linux : voir comment le service est lancé
+systemctl cat cloudflared 2>/dev/null | grep ExecStart
+ps aux | grep cloudflared
+# Windows (PowerShell) : (Get-CimInstance Win32_Service -Filter "Name='cloudflared'").PathName
+```
+
+- Si la commande contient **`--token eyJ...`** → **tunnel géré à distance (dashboard)**. Il n'y a **pas** de `config.yml` local, les routes se configurent dans le **dashboard Cloudflare Zero Trust** → voir 5A.
+- Si la commande référence un **`config.yml`** (ou `--config`) → **tunnel à config locale** → voir 5B.
+
+Le `--token` est un **secret** (il permet de lancer le tunnel) : ne pas le logger ni le partager.
+
+### 5A — Tunnel géré par token (dashboard) — cas le plus courant sur Windows/home lab
+
+Aucun fichier à éditer. Dans **Cloudflare Zero Trust → Networks → Tunnels →** ton tunnel **→ onglet "Public Hostname"**, ajoute 4 entrées (le DNS CNAME proxié est créé automatiquement) :
+
+| Subdomain | Domain | Type | URL |
+|---|---|---|---|
+| `insituadmin` | futursimple.club | HTTP | `localhost:8081` |
+| `insituplay` | futursimple.club | HTTP | `localhost:8082` |
+| `insitu` | futursimple.club | HTTP | `localhost:8082` |
+| `insitupb` | futursimple.club | HTTP | `localhost:8092` |
+
+**Type = HTTP** (pas HTTPS) : les services tournent en HTTP local, Cloudflare gère le TLS public — pas besoin de `noTLSVerify`. Adapter les ports si l'étape 2 en a changé. Rien à redémarrer : le tunnel applique la conf du dashboard à chaud. Passer directement au « Test public » plus bas.
+
+### 5B — Tunnel à config locale (YAML)
+
 Identifier le fichier de config :
 ```bash
 sudo cat /etc/cloudflared/config.yml 2>/dev/null \
