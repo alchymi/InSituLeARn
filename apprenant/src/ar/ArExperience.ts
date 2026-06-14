@@ -61,8 +61,10 @@ export class ArExperience {
     this.mindar = new MindARThree({
       container: opts.container,
       imageTargetSrc: opts.compiledTargetSrc,
-      // Track every target independently so each gets its own lost/found events
-      maxTrack: Math.max(1, this.targets.length),
+      // 2 = utile si l'apprenant cadre deux cibles à la fois (parcours rapproché).
+      // Au-delà, le flicker entre cibles trop similaires devient problématique.
+      // À ajuster côté design des cibles plutôt que d'augmenter ici.
+      maxTrack: Math.min(2, Math.max(1, this.targets.length)),
       missTolerance: 2,
       uiLoading: 'no',
       uiScanning: 'no',
